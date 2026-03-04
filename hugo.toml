@@ -1,4 +1,47 @@
-baseURL = 'https://example.org/'
-languageCode = 'en-us'
-title = 'My New Hugo Project'
-theme = 'ananke'
+baseURL = "https://cowboyben-ai.github.io/"
+languageCode = "zh-tw"
+title = "Hugo 的 個人 Blog"
+theme = "ananke"
+paginate = 10
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[params]
+  author = "你的名字"
+  description = "這是我的個人 Blog"
+  ShowReadingTime = true
+  ShowShareButtons = true
+  ShowPostNavLinks = true
+  ShowBreadCrumbs = true
+  ShowCodeCopyButtons = true
+
+  [params.homeInfoParams]
+    Title = "👋 Hi，歡迎來到我的 Blog"
+    Content = "這裡記錄我的技術筆記與生活隨筆"
+
+[menu]
+  [[menu.main]]
+    name = "文章"
+    url = "/posts/"
+    weight = 1
+  [[menu.main]]
+    name = "關於"
+    url = "/about/"
+    weight = 2
+  [[menu.main]]
+    name = "標籤"
+    url = "/tags/"
+    weight = 3
+  [[menu.main]]
+    identifier = "tools"
+    name = "工具"
+    url = "/tools/"
+    weight = 4
+  [[menu.main]]
+    parent = "tools"
+    name = "心率區間計算機"
+    url = "/tools/hr-calculator/"
+    weight = 1
