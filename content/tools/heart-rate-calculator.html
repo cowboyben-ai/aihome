@@ -1,0 +1,170 @@
+---
+title: "❤️ 心率區間計算工具 (幽默增強版)"
+layout: "single"
+---
+
+<!-- 引入 Tailwind CSS (在 Hugo 中若主題沒內建，這樣讀取最快) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+    /* 這裡可以放自定義動畫，不會被主題覆蓋 */
+    @keyframes pulse-soft {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    .heart-pulse {
+        animation: pulse-soft 2s infinite ease-in-out;
+    }
+
+    /* 修正 Hugo 主題背景可能與工具顏色打架的問題 */
+    .calc-wrapper {
+        color: #1e293b;
+        /* 內容強制用深色字體確保易讀性 */
+    }
+</style>
+
+<div class="calc-wrapper max-w-2xl mx-auto p-4 md:p-8 bg-white rounded-3xl shadow-xl mt-8 mb-12">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <div class="text-4xl mb-4 heart-pulse">❤️</div>
+        <h1 class="text-3xl font-extrabold text-slate-800 mb-2">心率區間計算工具</h1>
+        <p class="text-slate-500 text-sm">基於 Karvonen 儲備心率公式，科學衡量你的訓練與生命力。</p>
+    </div>
+
+    <!-- Input Card -->
+    <div class="bg-slate-50 rounded-2xl p-6 mb-8 border border-slate-200">
+        <h2 class="text-lg font-bold text-slate-700 mb-4 flex items-center">
+            <span class="mr-2">📋</span> 輸入基本數值
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-2">
+                    安靜心率 <span class="text-slate-400 font-normal">(Resting HR)</span>
+                </label>
+                <input type="number" id="restingHR" value="60" min="30" max="150"
+                    class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-rose-400 focus:outline-none transition-all">
+                <p class="text-xs text-slate-400 mt-2">起床時測量最準，越低通常心臟越強。</p>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-2">
+                    最大心率 <span class="text-slate-400 font-normal">(Max HR)</span>
+                </label>
+                <input type="number" id="maxHR" value="190" min="100" max="250"
+                    class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-rose-400 focus:outline-none transition-all">
+                <p class="text-xs text-slate-400 mt-2">約為 220 減去您的年齡。</p>
+            </div>
+        </div>
+
+        <button onclick="updateCalculations()"
+            class="w-full mt-8 bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-xl active:scale-95">
+            立即診斷我的心臟狀況
+        </button>
+    </div>
+
+    <!-- Results Section (Visible by default since we have default values) -->
+    <div id="resultsContent">
+
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div class="bg-rose-50 p-4 rounded-2xl text-center border border-rose-100">
+                <div class="text-xs text-rose-600 font-bold uppercase tracking-wider mb-1">儲備心率 (HRR)</div>
+                <div id="hrrValue" class="text-2xl font-black text-rose-700">--</div>
+            </div>
+            <div class="bg-blue-50 p-4 rounded-2xl text-center border border-blue-100">
+                <div class="text-xs text-blue-600 font-bold uppercase tracking-wider mb-1">健康等級</div>
+                <div id="healthRank" class="text-2xl font-black text-blue-700">--</div>
+            </div>
+        </div>
+
+        <!-- Zone Table -->
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden mb-8 shadow-sm">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-800 text-white">
+                    <tr>
+                        <th class="px-4 py-3">區間</th>
+                        <th class="px-4 py-3">目標心率 (BPM)</th>
+                        <th class="px-4 py-3 hidden md:table-cell">訓練目的</th>
+                    </tr>
+                </thead>
+                <tbody id="zoneTableBody" class="divide-y divide-slate-100">
+                    <!-- JS Rows -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Humorous Health Scale -->
+        <div class="bg-amber-50 rounded-2xl p-6 border-l-8 border-amber-400 italic">
+            <h3 id="healthTitle" class="text-lg font-bold text-amber-800 mb-2">---</h3>
+            <p id="healthDesc" class="text-slate-700 leading-relaxed text-sm"></p>
+        </div>
+
+        <p class="text-[10px] text-slate-300 mt-8 text-center italic">
+            免責聲明：本工具純屬娛樂與參考，不具醫療效力。如有心臟不適，請先停止看螢幕，去看醫生。
+        </p>
+    </div>
+</div>
+
+<script>
+    const trainingZones = [
+        { name: "Zone 1 (熱身)", pct: [50, 60], color: "text-emerald-600", bg: "bg-emerald-50", desc: "基礎恢復、促進血液循環" },
+        { name: "Zone 2 (燃脂)", pct: [60, 70], color: "text-sky-600", bg: "bg-sky-50", desc: "長時間 endurance、效率最高的燃脂區" },
+        { name: "Zone 3 (有氧)", pct: [70, 80], color: "text-indigo-600", bg: "bg-indigo-50", desc: "提升心肺基礎、耐力核心" },
+        { name: "Zone 4 (乳酸)", pct: [80, 90], color: "text-orange-600", bg: "bg-orange-50", desc: "提升無氧閾值、速度耐力" },
+        { name: "Zone 5 (神境界)", pct: [90, 100], color: "text-rose-600", bg: "bg-rose-50", desc: "極限衝刺、VO2 Max 訓練" }
+    ];
+
+    const healthLevels = [
+        { min: 0, max: 45, title: "🏆 變種人等級", rank: "神級", desc: "你的心跳這麼慢，是不是忘記跳了？這通常是奧運選手級別的心肥大（褒義）。你要嘛是馬拉松狂魔，要嘛是超能力者。" },
+        { min: 46, max: 55, title: "🦁 週末戰士", rank: "極佳", desc: "心跳很有節奏感。你大概每週至少流汗三次，或者你的心臟天生就比較大顆（物理）。你是電梯壞掉時最開心的人。" },
+        { min: 56, max: 65, title: "👤 健康的路人", rank: "良好", desc: "活在平均值之上的模範生。你的心臟運作穩定，足以應付突如其來的趕車衝刺，且不會在完畢後看起來像快死掉。" },
+        { min: 66, max: 75, title: "🛌 沙發守護者", rank: "普通", desc: "你的心臟在告訴你：『大哥，稍微走兩步吧？』。雖不危急，但如果連續爬三層樓梯，你可能會需要兩分鐘的心靈沈澱時間。" },
+        { min: 76, max: 85, title: "☕️ 緊張大師", rank: "偏高", desc: "你的心臟隨時在待命準備逃跑。是不是咖啡喝太多、壓力太重，還是單純覺得沙發太黏？" },
+        { min: 86, max: 999, title: "🚨 警報級別", rank: "堪慮", desc: "你坐著不動的心跳，快得像別人在跳廣場舞。這不僅是缺運動，可能還缺睡眠。別算區間了，先去休息吧！" }
+    ];
+
+    function updateCalculations() {
+        const rhr = parseInt(document.getElementById('restingHR').value);
+        const mhr = parseInt(document.getElementById('maxHR').value);
+
+        if (mhr <= rhr) {
+            alert("最大心率必須大於安靜心率！不然你就是外星人了。");
+            return;
+        }
+
+        const hrr = mhr - rhr;
+        document.getElementById('hrrValue').innerText = hrr;
+
+        // Update Zone Table
+        let tableHtml = "";
+        trainingZones.forEach(z => {
+            const low = Math.round(rhr + (hrr * z.pct[0] / 100));
+            const high = Math.round(rhr + (hrr * z.pct[1] / 100));
+            tableHtml += `
+                <tr class="${z.bg}">
+                    <td class="px-4 py-4 font-bold ${z.color}">${z.name}</td>
+                    <td class="px-4 py-4 font-mono font-bold">${low} - ${high}</td>
+                    <td class="px-4 py-4 hidden md:table-cell text-slate-600">${z.desc}</td>
+                </tr>
+            `;
+        });
+        document.getElementById('zoneTableBody').innerHTML = tableHtml;
+
+        // Update Health Evaluation
+        const level = healthLevels.find(l => rhr >= l.min && rhr <= l.max) || healthLevels[healthLevels.length - 1];
+        document.getElementById('healthRank').innerText = level.rank;
+        document.getElementById('healthTitle').innerText = level.title;
+        document.getElementById('healthDesc').innerText = level.desc;
+    }
+
+    // Initialize on load
+    window.onload = updateCalculations;
+</script>

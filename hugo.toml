@@ -43,5 +43,5 @@ paginate = 10
   [[menu.main]]
     parent = "tools"
     name = "心率區間計算機"
-    url = "/tools/hr-calculator/"
+    url = "/tools/heart-rate-calculator/"
     weight = 1
