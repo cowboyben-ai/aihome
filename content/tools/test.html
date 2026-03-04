@@ -1,0 +1,874 @@
+---
+title: "心率區間計算機 快速測試頁面)"
+layout: "single"
+draft: true
+---
+
+這就是你！
+
+<!--more-->
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>❤️ 心率區間計算工具</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            padding: 24px 16px;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 672px;
+            margin: 0 auto;
+        }
+
+        /* ── Header ── */
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        /* ── Card ── */
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .08);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            background: #334155;
+            padding: 16px 24px;
+        }
+
+        .card-header h2 {
+            color: #fff;
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .card-header p {
+            color: #cbd5e1;
+            font-size: 0.75rem;
+            margin-top: 2px;
+        }
+
+        /* ── Input Card ── */
+        .input-card {
+            padding: 24px;
+        }
+
+        .input-card h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 16px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        label span {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 1rem;
+            color: #1e293b;
+            outline: none;
+            transition: box-shadow .2s;
+        }
+
+        input[type="number"]:focus {
+            box-shadow: 0 0 0 2px #60a5fa;
+            border-color: #60a5fa;
+        }
+
+        .hrr-hint {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .hrr-hint strong {
+            color: #334155;
+        }
+
+        .error-hint {
+            font-size: 0.875rem;
+            color: #ef4444;
+            margin-bottom: 12px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background .2s, box-shadow .2s;
+        }
+
+        .btn-active {
+            background: #3b82f6;
+        }
+
+        .btn-active:hover {
+            background: #2563eb;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, .35);
+        }
+
+        .btn-disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        /* ── Zone Table ── */
+        .zone-list {}
+
+        .zone-item {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .zone-item:last-child {
+            border-bottom: none;
+        }
+
+        .zone-row1 {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .zone-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .zone-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .zone-hr {
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+
+        .zone-hr span {
+            font-size: 0.75rem;
+            font-weight: 400;
+        }
+
+        .zone-row2 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .zone-pct {
+            font-size: 0.75rem;
+            opacity: .7;
+            white-space: nowrap;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, .5);
+            border-radius: 999px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            border-radius: 999px;
+        }
+
+        .zone-effect {
+            font-size: 0.75rem;
+            opacity: .8;
+        }
+
+        .zone-footer {
+            padding: 12px 24px;
+            background: #f8fafc;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        /* Zone colours */
+        .zone-1 {
+            background: #eff6ff;
+            color: #1e40af;
+        }
+
+        .zone-2 {
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .zone-3 {
+            background: #fefce8;
+            color: #854d0e;
+        }
+
+        .zone-4 {
+            background: #fff7ed;
+            color: #9a3412;
+        }
+
+        .zone-5 {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .badge-z1 {
+            background: #60a5fa;
+        }
+
+        .badge-z2 {
+            background: #4ade80;
+        }
+
+        .badge-z3 {
+            background: #facc15;
+            color: #1e293b !important;
+        }
+
+        .badge-z4 {
+            background: #fb923c;
+        }
+
+        .badge-z5 {
+            background: #ef4444;
+        }
+
+        /* ── Health Card ── */
+        .health-body {
+            padding: 24px;
+        }
+
+        .health-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .health-emoji {
+            font-size: 3rem;
+            line-height: 1;
+        }
+
+        .health-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+        }
+
+        .health-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .health-sub {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .analysis-box {
+            background: rgba(255, 255, 255, .7);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 0.875rem;
+            color: #334155;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .cardiac-box {
+            background: rgba(255, 255, 255, .8);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .cardiac-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .cardiac-emoji {
+            font-size: 1.5rem;
+        }
+
+        .cardiac-label p:first-child {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .cardiac-label p:last-child {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        .cardiac-age {
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .cardiac-age span:first-child {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #f43f5e;
+        }
+
+        .cardiac-age span:last-child {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fb7185;
+            margin-left: 2px;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 8px 0;
+        }
+
+        .cardiac-comment {
+            font-size: 0.875rem;
+            color: #475569;
+            line-height: 1.7;
+        }
+
+        .cardiac-disclaimer {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* ── 10-Level Table ── */
+        .level-item {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background .15s;
+        }
+
+        .level-item:last-child {
+            border-bottom: none;
+        }
+
+        .level-item:hover {
+            background: #f8fafc;
+        }
+
+        .level-item.is-me {
+            background: #eff6ff;
+            box-shadow: inset 0 0 0 2px #60a5fa;
+        }
+
+        .level-inner {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .level-emoji {
+            font-size: 1.5rem;
+            margin-top: 2px;
+        }
+
+        .level-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .level-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+        }
+
+        .level-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .is-me-tag {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #2563eb;
+            background: #dbeafe;
+            padding: 2px 8px;
+            border-radius: 999px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .5;
+            }
+        }
+
+        .level-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+
+        .level-analysis {
+            font-size: 0.75rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .disclaimer-footer {
+            padding: 16px 24px;
+            background: #fffbeb;
+            border-top: 1px solid #fde68a;
+            font-size: 0.75rem;
+            color: #92400e;
+            text-align: center;
+        }
+
+        /* Badge colours for levels */
+        .badge-lv1 {
+            background: #a855f7;
+        }
+
+        .badge-lv2 {
+            background: #3b82f6;
+        }
+
+        .badge-lv3 {
+            background: #06b6d4;
+        }
+
+        .badge-lv4 {
+            background: #22c55e;
+        }
+
+        .badge-lv5 {
+            background: #84cc16;
+        }
+
+        .badge-lv6 {
+            background: #eab308;
+            color: #1e293b !important;
+        }
+
+        .badge-lv7 {
+            background: #f59e0b;
+            color: #1e293b !important;
+        }
+
+        .badge-lv8 {
+            background: #f97316;
+        }
+
+        .badge-lv9 {
+            background: #f87171;
+        }
+
+        .badge-lv10 {
+            background: #e11d48;
+        }
+
+        /* Health card border colours */
+        .hcard-lv1 {
+            border: 2px solid #d8b4fe;
+            background: #faf5ff;
+        }
+
+        .hcard-lv2 {
+            border: 2px solid #93c5fd;
+            background: #eff6ff;
+        }
+
+        .hcard-lv3 {
+            border: 2px solid #67e8f9;
+            background: #ecfeff;
+        }
+
+        .hcard-lv4 {
+            border: 2px solid #86efac;
+            background: #f0fdf4;
+        }
+
+        .hcard-lv5 {
+            border: 2px solid #bef264;
+            background: #f7fee7;
+        }
+
+        .hcard-lv6 {
+            border: 2px solid #fde047;
+            background: #fefce8;
+        }
+
+        .hcard-lv7 {
+            border: 2px solid #fcd34d;
+            background: #fffbeb;
+        }
+
+        .hcard-lv8 {
+            border: 2px solid #fdba74;
+            background: #fff7ed;
+        }
+
+        .hcard-lv9 {
+            border: 2px solid #fca5a5;
+            background: #fef2f2;
+        }
+
+        .hcard-lv10 {
+            border: 2px solid #fda4af;
+            background: #fff1f2;
+        }
+
+        @media (max-width: 480px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <div class="header">
+            <h1>❤️ 心率區間計算工具</h1>
+            <p>基於 Karvonen 儲備心率公式（HRR Method）</p>
+        </div>
+
+        <!-- Input Card -->
+        <div class="card">
+            <div class="input-card">
+                <h2>📋 輸入基本資料</h2>
+                <div class="grid-2">
+                    <div>
+                        <label>安靜心率 <span>(bpm)</span></label>
+                        <input type="number" id="rhr" min="30" max="120" placeholder="例：60" oninput="onInputChange()" />
+                    </div>
+                    <div>
+                        <label>最大心率 <span>(bpm)</span></label>
+                        <input type="number" id="mhr" min="100" max="250" placeholder="例：190"
+                            oninput="onInputChange()" />
+                    </div>
+                </div>
+                <div id="hrr-hint" style="display:none" class="hrr-hint"></div>
+                <div id="error-hint" style="display:none" class="error-hint">⚠️ 請確認最大心率大於安靜心率，且數值合理</div>
+                <button id="calc-btn" class="btn btn-disabled" onclick="calculate()">計算心率區間</button>
+            </div>
+        </div>
+
+        <!-- Results (hidden until calculated) -->
+        <div id="results" style="display:none"></div>
+
+    </div>
+
+    <script>
+        /* ── Data ── */
+        const zones = [
+            { zone: 1, name: '主動恢復', minPct: 50, maxPct: 60, badgeClass: 'badge-z1', zoneClass: 'zone-1', effect: '促進血液循環、加速恢復、熱身與緩和' },
+            { zone: 2, name: '有氧基礎', minPct: 60, maxPct: 70, badgeClass: 'badge-z2', zoneClass: 'zone-2', effect: '提升有氧耐力、燃脂效率高、長時間訓練基礎' },
+            { zone: 3, name: '有氧發展', minPct: 70, maxPct: 80, badgeClass: 'badge-z3', zoneClass: 'zone-3', effect: '增強心肺功能、提升乳酸閾值、改善耐力表現' },
+            { zone: 4, name: '乳酸閾值', minPct: 80, maxPct: 90, badgeClass: 'badge-z4', zoneClass: 'zone-4', effect: '提高速度耐力、訓練身體耐受高強度、競賽配速訓練' },
+            { zone: 5, name: '最大強度', minPct: 90, maxPct: 100, badgeClass: 'badge-z5', zoneClass: 'zone-5', effect: '提升最大攝氧量（VO₂max）、爆發力與最高速度' },
+        ];
+
+        const healthLevels = [
+            { level: 1, title: '氪星超人', rhrMin: 0, rhrMax: 44, rhrLabel: '< 45', hrrLabel: '極大', emoji: '🦸', badgeClass: 'badge-lv1', cardClass: 'hcard-lv1', analysis: '你的心臟大概是汎合金做的。你睡覺時心跳慢到像是在冬眠，醫生量脈搏時可能會以為儀器壞了。你不需要跑步，是路在你的腳下移動。' },
+            { level: 2, title: '奧運遺珠', rhrMin: 45, rhrMax: 49, rhrLabel: '45–49', hrrLabel: '非常大', emoji: '🏅', badgeClass: 'badge-lv2', cardClass: 'hcard-lv2', analysis: '你追公車不是為了搭車，是為了羞辱公車司機。你的心臟幫浦效率高到可以拿來灌溉農田，馬拉松對你來說只是暖身運動。' },
+            { level: 3, title: '健身房住戶', rhrMin: 50, rhrMax: 54, rhrLabel: '50–54', hrrLabel: '大', emoji: '💪', badgeClass: 'badge-lv3', cardClass: 'hcard-lv3', analysis: '你的血管裡流的不是血，是高蛋白飲。爬十層樓梯對你來說，心跳加速的程度大概跟常人「看到午餐菜單」差不多。' },
+            { level: 4, title: '週末戰士', rhrMin: 55, rhrMax: 59, rhrLabel: '55–59', hrrLabel: '優秀', emoji: '⚔️', badgeClass: 'badge-lv4', cardClass: 'hcard-lv4', analysis: '你有在練喔！雖然平日被工作摧殘，但你的心臟依然強大。你可以輕鬆完成半馬，只是隔天走路姿勢會像剛學走路的企鵝。' },
+            { level: 5, title: '健康模範生', rhrMin: 60, rhrMax: 64, rhrLabel: '60–64', hrrLabel: '良好', emoji: '📚', badgeClass: 'badge-lv5', cardClass: 'hcard-lv5', analysis: '普世標準的「健康人」。你的心臟規規矩矩，不多跳也不少跳。你活在教科書建議的完美區間，無聊但安全，保險業務員最愛你。' },
+            { level: 6, title: '一般路人甲', rhrMin: 65, rhrMax: 69, rhrLabel: '65–69', hrrLabel: '普通', emoji: '🚶', badgeClass: 'badge-lv6', cardClass: 'hcard-lv6', analysis: '你就是那個統計學上的「平均值」。心臟功能堪用，但如果電梯壞了要爬 5 樓，你到達時可能會需要 3 分鐘的「沈思時間」來喘氣。' },
+            { level: 7, title: '辦公室浮游生物', rhrMin: 70, rhrMax: 74, rhrLabel: '70–74', hrrLabel: '尚可', emoji: '🪸', badgeClass: 'badge-lv7', cardClass: 'hcard-lv7', analysis: '你的心跳主要受「老闆的腳步聲」和「截止日期」控制，而非運動。儲備心率剛好夠你應付趕捷運的衝刺，再多就不行了。' },
+            { level: 8, title: '沙發守護者', rhrMin: 75, rhrMax: 79, rhrLabel: '75–79', hrrLabel: '偏低', emoji: '🛋️', badgeClass: 'badge-lv8', cardClass: 'hcard-lv8', analysis: '你的心臟表示：「我光是維持你坐著滑手機就很累了」。你的最大運動量通常發生在找不到遙控器的時候。建議開始練習「站起來」這項極限運動。' },
+            { level: 9, title: '緊張大師', rhrMin: 80, rhrMax: 89, rhrLabel: '80–89', hrrLabel: '低', emoji: '😰', badgeClass: 'badge-lv9', cardClass: 'hcard-lv9', analysis: '你坐著不動的心跳，快得像別人正在慢跑。你的心臟似乎隨時都在準備應對一場不存在的戰鬥。深呼吸，放下那杯特大杯美式咖啡！' },
+            { level: 10, title: '行走的警報器', rhrMin: 90, rhrMax: 999, rhrLabel: '> 90', hrrLabel: '極低', emoji: '🚨', badgeClass: 'badge-lv10', cardClass: 'hcard-lv10', analysis: '嘿，你的心臟在求救，你有聽到嗎？你的儲備心率空間小到連「大笑」都算有氧運動。別看表格了，快去預約醫生，現在！' },
+        ];
+
+        function getCardiacAgeComment(age) {
+            if (age <= 25) return { text: '你的心臟年齡比你的戶籍年齡年輕到可以去夜店被要求出示身分證。恭喜你，你的心臟活在青春裡！', emoji: '🎉' };
+            if (age <= 35) return { text: '心臟年齡相當年輕！你的心臟還在青壯年，繼續保持，它會感謝你的。', emoji: '😎' };
+            if (age <= 45) return { text: '心臟年齡中規中矩，正值壯年。你的心臟跟你一起努力生活，記得偶爾犒賞它一下。', emoji: '🙂' };
+            if (age <= 55) return { text: '心臟年齡已步入中年，開始有點懷舊了。建議多運動，讓它重拾年輕的感覺。', emoji: '🤔' };
+            if (age <= 65) return { text: '心臟年齡已屆退休門檻，它可能正在考慮申請勞保。是時候認真對待運動這件事了！', emoji: '😬' };
+            return { text: '你的心臟年齡已經在規劃環遊世界退休之旅了。請立刻放下這個計算機，去運動！', emoji: '🆘' };
+        }
+
+        /* ── Reactive helpers ── */
+        function getValues() {
+            const rhr = parseInt(document.getElementById('rhr').value);
+            const mhr = parseInt(document.getElementById('mhr').value);
+            return { rhr, mhr };
+        }
+
+        function isValid(rhr, mhr) {
+            return !isNaN(rhr) && !isNaN(mhr) && rhr > 0 && mhr > rhr;
+        }
+
+        function onInputChange() {
+            const { rhr, mhr } = getValues();
+            const hintEl = document.getElementById('hrr-hint');
+            const errorEl = document.getElementById('error-hint');
+            const btn = document.getElementById('calc-btn');
+
+            const rhrInput = document.getElementById('rhr').value;
+            const mhrInput = document.getElementById('mhr').value;
+
+            if (rhrInput !== '' && mhrInput !== '') {
+                if (isValid(rhr, mhr)) {
+                    hintEl.innerHTML = `📊 最大儲備心率（HRR）= ${mhr} − ${rhr} = <strong>${mhr - rhr} bpm</strong>`;
+                    hintEl.style.display = 'block';
+                    errorEl.style.display = 'none';
+                    btn.className = 'btn btn-active';
+                    btn.disabled = false;
+                } else {
+                    hintEl.style.display = 'none';
+                    errorEl.style.display = 'block';
+                    btn.className = 'btn btn-disabled';
+                    btn.disabled = true;
+                }
+            } else {
+                hintEl.style.display = 'none';
+                errorEl.style.display = 'none';
+                btn.className = 'btn btn-disabled';
+                btn.disabled = true;
+            }
+
+            // Clear results when inputs change
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('results').innerHTML = '';
+        }
+
+        function zoneHR(pct, rhr, hrr) {
+            return Math.round(hrr * (pct / 100) + rhr);
+        }
+
+        /* ── Main calculate ── */
+        function calculate() {
+            const { rhr, mhr } = getValues();
+            if (!isValid(rhr, mhr)) return;
+
+            const hrr = mhr - rhr;
+            const matchedLevel = healthLevels.find(l => rhr >= l.rhrMin && rhr <= l.rhrMax);
+            const cardiacAge = 220 - mhr;
+            const comment = getCardiacAgeComment(cardiacAge);
+
+            const resultsEl = document.getElementById('results');
+            resultsEl.innerHTML = buildZoneTable(rhr, mhr, hrr)
+                + buildHealthCard(matchedLevel, rhr, mhr, cardiacAge, comment)
+                + buildLevelTable(matchedLevel);
+            resultsEl.style.display = 'block';
+        }
+
+        /* ── Zone Table HTML ── */
+        function buildZoneTable(rhr, mhr, hrr) {
+            const rows = zones.map(z => {
+                const lo = zoneHR(z.minPct, rhr, hrr);
+                const hi = z.maxPct === 100 ? mhr : zoneHR(z.maxPct, rhr, hrr);
+                const barLeft = (z.minPct - 50) * 2;
+                const barWidth = (z.maxPct - z.minPct) * 2;
+                return `
+      <div class="zone-item ${z.zoneClass}">
+        <div class="zone-row1">
+          <div class="zone-left">
+            <span class="badge ${z.badgeClass}">Zone ${z.zone}</span>
+            <span class="zone-name">${z.name}</span>
+          </div>
+          <span class="zone-hr">${lo} – ${hi} <span>bpm</span></span>
+        </div>
+        <div class="zone-row2">
+          <span class="zone-pct">${z.minPct}% – ${z.maxPct}% HRR</span>
+          <div class="bar-track">
+            <div class="bar-fill ${z.badgeClass}" style="left:${barLeft}%;width:${barWidth}%"></div>
+          </div>
+        </div>
+        <p class="zone-effect">💡 ${z.effect}</p>
+      </div>`;
+            }).join('');
+
+            return `
+    <div class="card">
+      <div class="card-header">
+        <h2>📈 心率訓練區間表</h2>
+        <p>安靜心率 ${rhr} bpm ／ 最大心率 ${mhr} bpm ／ HRR ${hrr} bpm</p>
+      </div>
+      <div class="zone-list">${rows}</div>
+      <div class="zone-footer">公式：目標心率 = HRR × 強度% + 安靜心率</div>
+    </div>`;
+        }
+
+        /* ── Health Card HTML ── */
+        function buildHealthCard(level, rhr, mhr, cardiacAge, comment) {
+            if (!level) return '';
+            return `
+    <div class="card ${level.cardClass}">
+      <div class="card-header">
+        <h2>🩺 你的心臟健康分析</h2>
+        <p>根據你的安靜心率 ${rhr} bpm 所做的幽默診斷報告</p>
+      </div>
+      <div class="health-body">
+        <div class="health-top">
+          <span class="health-emoji">${level.emoji}</span>
+          <div>
+            <div class="health-title-row">
+              <span class="badge ${level.badgeClass}">Lv. ${level.level}</span>
+              <span class="health-title">${level.title}</span>
+            </div>
+            <p class="health-sub">安靜心率：${level.rhrLabel} bpm ／ 儲備心率：${level.hrrLabel}</p>
+          </div>
+        </div>
+        <div class="analysis-box">${level.analysis}</div>
+        <div class="cardiac-box">
+          <div class="cardiac-top">
+            <span class="cardiac-emoji">${comment.emoji}</span>
+            <div class="cardiac-label">
+              <p>免責心臟年齡</p>
+              <p>公式：220 − 真實最大心率（${mhr} bpm）</p>
+            </div>
+            <div class="cardiac-age">
+              <span>${cardiacAge}</span><span>歲</span>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <p class="cardiac-comment">${comment.text}</p>
+          <p class="cardiac-disclaimer">⚠️ 「免責」提醒：此數值僅為趣味估算，不代表真實醫學心臟年齡，請勿拿去嚇自己或家人。</p>
+        </div>
+      </div>
+    </div>`;
+        }
+
+        /* ── 10-Level Table HTML ── */
+        function buildLevelTable(matchedLevel) {
+            const rows = healthLevels.map(l => {
+                const isMe = matchedLevel && matchedLevel.level === l.level;
+                const meTag = isMe ? `<span class="is-me-tag">← 這就是你！</span>` : '';
+                return `
+      <div class="level-item ${isMe ? 'is-me' : ''}">
+        <div class="level-inner">
+          <span class="level-emoji">${l.emoji}</span>
+          <div class="level-content">
+            <div class="level-title-row">
+              <span class="badge ${l.badgeClass}">Lv. ${l.level}</span>
+              <span class="level-name">${l.title}</span>
+              ${meTag}
+            </div>
+            <div class="level-stats">
+              <span>安靜心率：${l.rhrLabel} bpm</span>
+              <span>儲備心率：${l.hrrLabel}</span>
+            </div>
+            <p class="level-analysis">${l.analysis}</p>
+          </div>
+        </div>
+      </div>`;
+            }).join('');
+
+            return `
+    <div class="card">
+      <div class="card-header">
+        <h2>😂 心臟健康程度 10 級量表</h2>
+        <p>從外星人到沙發馬鈴薯，你在哪一級？</p>
+      </div>
+      ${rows}
+      <div class="disclaimer-footer">
+        ⚠️ <strong>免責聲明：</strong>本表格僅供娛樂與自我警惕，若有心臟不適或數值異常，請務必諮詢專業醫療人員，不要只聽 AI 瞎掰。
+      </div>
+    </div>`;
+        }
+    </script>
+</body>
+
+</html>
